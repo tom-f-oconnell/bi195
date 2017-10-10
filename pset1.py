@@ -50,6 +50,7 @@ def differentiate(f, dx=1, boundary_handling='copy', verbose=False):
 
     return g
 
+print 'Problem 5:'
 
 a = 4
 n = 4
@@ -88,3 +89,123 @@ print 'its determinant:'
 print det2by2(A)
 
 
+'''
+Problem 6
+'''
+
+def leading_coefficient_idx(v):
+    """
+    Doesn't check whether v is a zero vector.
+    """
+    return np.argmax(np.abs(v) > 1e-6)
+
+
+def gaussian_elimination(A, stop='gauss', det_change_factor=False):
+    """
+    Returns the row echelon form of A.
+
+    Goal:
+    -transform matrix through [row XOR col] operations to one that is in [row XOR col]
+     echelon form
+
+    Uses:
+    -calculating determinants
+    -"solving" systems of equations
+
+    Operations available ("elementary row operations"):
+    1: swap two rows
+    2: multiply a row by a nonzero scalar
+    3: add to one row a scalar multiple of another (seems to unecessarily include rule 2, 
+       doesn't specifcy nonzero here either, on Wiki, but I think they mean to)
+
+    -should run in O(n^3)
+    TODO where n is number of elements or one dimension of (square?) matrix?
+    -sometimes unstable, but generally not (for some classes of matrices at least)
+    """
+    if stop not in {'gauss', 'gauss-jordan'}:
+        raise ValueError('invalid stopping condition')
+    
+    def enumerate_leads(M):
+        return [(row_idx, leading_coefficient_idx(row)) for row_idx, row in enumerate(M)]
+
+    def sort_rows_by_leading_index(M):
+        pairs = enumerate_leads(M)
+        # sort output places keys from small to big
+        sorted_row_indices = [x for x, y in sorted(pairs, key=lambda x: x[1])]
+        return M[sorted_row_indices, :]
+    
+    zero_row = np.zeros(A.shape[1])
+    def is_zeros(row):
+        return np.allclose(row, zero_row)
+
+    if det_change_factor:
+        d = 1
+
+    A = sort_rows_by_leading_index(A)
+    curr_row_idx = 0
+
+    while curr_row_idx < A.shape[0]:
+        curr_lead = leading_coefficient_idx(A[curr_row_idx])
+
+        # find one row with same index for its leading coefficient
+        # if none exist, continue to next row
+        other_leads = enumerate_leads(A[curr_row_idx + 1:, :])
+        ties = [i + 1 + curr_row_idx for i, l in other_leads if l == curr_lead]
+
+        # make it so no leading coefficients have the same index
+        while len(ties) != 0:
+            i = ties.pop()
+            scale = A[i, curr_lead] / A[curr_row_idx, curr_lead]
+            A[i,:] = A[i,:] - scale * A[curr_row_idx, :]
+
+        A[curr_row_idx + 1:, :] = sort_rows_by_leading_index(A[curr_row_idx + 1:, :])
+        curr_row_idx += 1
+
+    if stop == 'gauss-jordan':
+        lead_indices = []
+        # make all leading coefficients 1
+        # by dividing the rows by themselves
+        for i in range(A.shape[0]):
+            row = A[i,:]
+            # assumes sorted s.t. all zero rows beneath all nonzero rows
+            if is_zeros(row):
+                break
+            lead_idx = leading_coefficient_idx(row)
+            lead_indices.append((i,lead_idx))
+            leading_coeff = A[i, lead_idx]
+            A[i,:] = row / leading_coeff
+
+        # make all other entries in columns with leading indices zero
+        # by subtracting (multiples of) the row with the lead from the others
+        for i, j in lead_indices:
+            lead = A[i,j]
+            for i_other in range(A.shape[0]):
+                if i != i_other and not np.isclose(A[i_other,j], 0):
+                    scale = A[i_other,j] / A[i,j]
+                    A[i_other,:] = A[i_other,:] - scale * A[i,:]
+    return A
+
+
+def solve(A, b):
+    """
+    Returns the x from Ax=b
+    """
+    # make augmented
+    Ab = np.concatenate((A, b), axis=1)
+    S = gaussian_elimination(Ab, stop='gauss-jordan')
+    x = S[:,-1]
+    return x
+
+
+print '\nProblem 6:'
+A = np.array( \
+    [[2, -1, -3], \
+     [-2, 5, 1], \
+     [1, 4, 6]])
+b = np.array([-21.25, 41.5833, 35]).reshape(3, 1)
+
+print 'A:\n', A
+print 'b:\n', b
+print 'x:\n', solve(A, b).reshape(3, 1)
+print 'numpy.linalg.solve(A,b), for comparison:\n', \
+    np.linalg.solve(A, b)
