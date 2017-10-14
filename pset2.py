@@ -10,7 +10,11 @@ sns.set_style('dark')
 def a(arraylike):
     return np.array(arraylike)
 
-# problem 2
+
+###############################################################################
+# Problem 2
+###############################################################################
+
 print 'problem 2 (just for checking):'
 A2 = a([[1,0,0],[0,3,6],[0,-1,-2]])
 assert np.allclose(A2, np.dot(A2, A2))
@@ -35,7 +39,10 @@ for v in unique_eivals:
         print 'could not find eigenvector, b/c singular matrix:\n{}'.format(to_solve)
 
 
-# problem 3
+###############################################################################
+# Problem 3
+###############################################################################
+
 print '\nproblem 3 (just for checking):'
 # j suffix creates an imaginary number
 A3 = a([[0, -1j], [1j, 0]])
@@ -88,3 +95,70 @@ A3_diag2 = np.dot(np.dot(P, np.dot(D2, Pinv)), A3)
 print 'A diagonalized w/ D2:\n{}\n'.format(A3_diag2)
 
 
+###############################################################################
+# Problem 5
+###############################################################################
+
+def get_A5(x):
+    return a([[x, -2], [3, 4]])
+
+start = -15
+stop = 30
+num = 1000
+atol_for_zero = 0.05
+
+eigenvalues = []
+xs = np.linspace(start, stop, num=num)
+was_real_last = None
+to_print = ''
+for x in xs:
+    eivals, _ = np.linalg.eig(get_A5(x))
+    eigenvalues.append(eivals)
+
+    # TODO tune so only one value flags w/ atol
+    if np.isclose(0.0, eivals[0], atol=atol_for_zero):
+        to_print += 'Eigenvalue 1 becomes zero at x={:.1f}\n'.format(x)
+    if np.isclose(0.0, eivals[1], atol=atol_for_zero):
+        to_print += 'Eigenvalue 2 becomes zero at x={:.1f}\n'.format(x)
+
+    if np.any(np.nonzero(np.imag(eivals))):
+        complex_evs = True
+    else:
+        complex_evs = False
+
+    if was_real_last is None:
+        x_on_last_change = x
+
+    elif was_real_last and complex_evs:
+        print 'Eigenvalues real on [{:.1f}, {:.1f}]'.format(x_on_last_change, x)
+        x_on_last_change = x
+
+    elif not (was_real_last or complex_evs):
+        print 'Eigenvalues complex on [{:.1f}, {:.1f}]'.format(x_on_last_change, x)
+        x_on_last_change = x
+
+    was_real_last = False if complex_evs else True
+
+if was_real_last:
+    print 'Eigenvalues real on [{:.1f}, {:.1f}]'.format(x_on_last_change, x)
+else:
+    print 'Eigenvalues complex on [{:.1f}, {:.1f}]'.format(x_on_last_change, x)
+
+print '\n{}'.format(to_print)
+
+eigenvalues = np.stack(eigenvalues, axis=0)
+
+fig = plt.figure()
+
+def plot_complex_series(series, c, text):
+    plt.plot(xs, np.real(series), c=c, label=('$Re$(' + text + ')'))
+    plt.plot(xs, np.imag(series), c=c, linestyle='--', label=('$Im$(' + text + ')'))
+
+plot_complex_series(eigenvalues[:,0], 'b', '$\lambda_1$')
+plot_complex_series(eigenvalues[:,1], 'r', '$\lambda_2$')
+plt.legend()
+plt.title('Eigenvalues over parameter range')
+plt.xlabel('$a$')
+plt.ylabel('Eigenvalue component magnitude')
+
+plt.show()
