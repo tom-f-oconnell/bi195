@@ -1,0 +1,1 @@
+https://math.stackexchange.com/questions/120382/determining-the-eigenvectors-from-a-reduced-row-echelon-matrix
