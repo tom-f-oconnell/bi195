@@ -17,33 +17,76 @@ def a(arraylike):
 
 print 'problem 2 (just for checking):'
 A2 = a([[1,0,0],[0,3,6],[0,-1,-2]])
+
+# each time i run the calculation, i come out with lambda = 0
+# having algebraic multiplicity 1, and lambda = 1 having algebraic
+# multiplicity 2
+# YET the dimension of the null space of A2 - (1)*I is 1
+# and it is 2 for (A2 (- 0)). (unless miscalculated). WHY?
+
+def is_colinear(v1, v2):
+    if np.isclose(np.dot(v1,v1)*np.dot(v2,v2),
+        np.dot(v1,v2)**2):
+
+        print '{} and {} were colinear'.format(v1, v2)
+        return True
+
+    else:
+        print '{} and {} were NOT colinear'.format(v1, v2)
+        return False
+
+
+def check_eigenvalue(M, vec, val=None):
+    vec = a(vec)
+    print vec
+    # TODO ...and why does only this eigenvector act like it 
+    t = np.dot(M, vec)
+    #assert np.allclose(t1, v1 * e1_manual), '\n{}\n{}'.format(v1, t1)
+    print np.linalg.norm(t) / np.linalg.norm(vec)
+    print t
+
+#print 'eigenvalue for v1 (came from lambda=0 calculation): {}'.format(\
+
+# checking A2 is idempotent numerically
 assert np.allclose(A2, np.dot(A2, A2))
 
 eivals, eivecs = np.linalg.eig(A2)
 print 'eigenvalues and vectors determined computationally with ' + \
-    'numpy:\neigenvalues: {}\neigenvectors: {}'.format(eivals, eivecs)
+    'numpy:\neigenvalues:\n{}\neigenvectors:\n{}'.format(eivals, eivecs)
 
 print 'matrix rank (perhaps determined through a similar ' + \
     'computation to above): {}'.format(np.linalg.matrix_rank(A2))
 
-unique_eivals = {round(v, 6) for v in eivals if not np.isclose(v, 0.0)}
-n = A2.shape[0]
-for v in unique_eivals:
-    # TODO are these (cols?) directly the eigenvecs or do i need to transform?
-    print 'computationally solving for eigenvectors for eigenval: {}'.format(v)
-    to_solve = A2 - v * np.eye(n)
-    try:
-        
-        print np.linalg.solve(to_solve, np.zeros(n))
-    except np.linalg.linalg.LinAlgError:
-        print 'could not find eigenvector, b/c singular matrix:\n{}'.format(to_solve)
+# eigenvectors i have determined manually
+vs0 = {(1, 0, 0), (0, 1, -2)}
+val0 = 0
+for v in vs0:
+    check_eigenvalue(A2, v, val=val0)
 
+vs1 = {(0, 1, -3)}
+val1 = 1
+for v in vs1:
+    check_eigenvalue(A2, v, val=val1)
+
+# TODO use these to check
+# from wolfram
+correct_eivecs_wolfram = {(0,-3,1), (1,0,0), (0,-2,1)}
+correct_eivecs_numpy = {tuple(eivecs[:,i]) for i in range(eivecs.shape[1])}
+my_eivecs = vs0 | vs1
+print correct_eivecs_wolfram
+print correct_eivecs_numpy
+
+for v1 in correct_eivecs_wolfram:
+    assert sum(map(lambda x: is_colinear(v1, x), correct_eivecs_numpy)) == 1
+
+for v1 in my_eivecs:
+    assert sum(map(lambda x: is_colinear(v1, x), correct_eivecs_numpy)) == 1
 
 ###############################################################################
 # Problem 3
 ###############################################################################
 
-print '\nproblem 3 (just for checking):'
+print '\nProblem 3 (just for checking):'
 # j suffix creates an imaginary number
 A3 = a([[0, -1j], [1j, 0]])
 # would need sympy or similar to define x
@@ -161,4 +204,4 @@ plt.title('Eigenvalues over parameter range')
 plt.xlabel('$a$')
 plt.ylabel('Eigenvalue component magnitude')
 
-plt.show()
+#plt.show()
