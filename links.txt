@@ -1,1 +1,3 @@
-https://math.stackexchange.com/questions/120382/determining-the-eigenvectors-from-a-reduced-row-echelon-matrix
+https://www.dartmouth.edu/~chance/teaching_aids/books_articles/probability_book/Chapter7.pdf
+http://www.milefoot.com/math/stat/rv-sums.htm
+
