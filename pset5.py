@@ -45,7 +45,6 @@ sigma = manual_stddev
 
 sigmas_to_show = 4
 xx = np.linspace(mu - sigmas_to_show * sigma, mu + sigmas_to_show * sigma, num=1000)
-'''
 plt.plot(xx, norm.pdf(xx, mu, sigma), 'r', linewidth=2, alpha=0.9)
 
 bins = 50
@@ -54,9 +53,8 @@ plt.ylim([0, max(n) * 1.2])
 plt.title('CLT: Normal vs. empirical distribution')
 plt.xlabel('$x$')
 plt.ylabel('Frequency')
-
-plt.show()
-'''
+plt.savefig('pset5_3.svg')
+plt.close('all')
 
 """
 Problem 4: PCA
@@ -186,8 +184,6 @@ def evaluate_pc_estimates(C_ii, ms, nested_plot=False):
         print m, valerr, vecerr
     print ''
 
-    # TODO do plotting / printing here?
-
     return value_errors, vector_errors
 
 # 4.a
@@ -217,5 +213,6 @@ evaluate_pc_estimates(C_ii, ms)
 # TODO statistically test whether error is significantly higher (for given m)
 # or decreasing slower, at higher dimensions?
 
-#plt.show()
+plt.savefig('pset5_4.svg')
+plt.show()
 
