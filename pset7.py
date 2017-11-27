@@ -14,39 +14,31 @@ sns.set_style('dark')
 
 # Question 1: Power spectrum of a stationary Gaussian process
 
-def autocorrelation(data):
-    num_valid_lags = len(data) - 1
-    autocorr = np.zeros(num_valid_lags)
-    for i in range(1, num_valid_lags):
-        '''
-        print data[:-i].shape
-        print data[i:].shape
-        '''
-        autocorr[i] = np.corrcoef(data[:-i], data[i:])[0, 1]
-    return autocorr
+def autocorr_and_welch(data, segment_length=None):
+    if segment_length is None:
+        f1 = plt.figure()
+        # "compute the correlation function of this signal and plot it"
+        autocorr = np.correlate(data, data, mode='same')
 
-def autocorr_and_welch(data):
-    plt.figure()
-    plt.plot(data)
-
-    f1 = plt.figure()
-    # "compute the correlation function of this signal and plot it"
-    #autocorr = np.correlate(data, data, mode='same')
-
-    autocorr = autocorrelation(data)
-
-    plt.title('Autocorrelation as a function of time lag $\tau$)')
-    plt.xlabel('$\tau$')
-    plt.ylabel('Correlation')
-    plt.plot(autocorr)
+        plt.title('Autocorrelation as a function of time lag')
+        plt.xlabel('Time lag')
+        plt.ylabel('Correlation')
+        plt.plot(autocorr)
 
     # welch
+    if not segment_length is None:
+        freqs, powers = scipy.signal.welch(data, nperseg=segment_length)
+    else:
+        freqs, powers = scipy.signal.welch(data)
+
     f2 = plt.figure()
-    freqs, powers = scipy.signal.welch(data)
     plt.loglog(freqs, powers)
     plt.xlabel('Frequency')
     plt.ylabel('Power')
-    plt.title('PSD estimate')
+    title = 'PSD estimate'
+    if not segment_length is None:
+        title += ' segment_length={}'.format(segment_length)
+    plt.title(title)
 
 samples = 100000
 # from mean=0, variance=std=1
@@ -64,10 +56,7 @@ assert np.sum(np.isnan(summed)) == 0
 
 autocorr_and_welch(summed)
 
-# TODO do welch bonus as well
-
-#autocorr = np.correlate(xt, xt, mode='full')
-#f2 = plt.figure()
-#plt.plot(autocorr)
+autocorr_and_welch(summed, segment_length=1024)
+autocorr_and_welch(summed, segment_length=64)
 
 plt.show()
