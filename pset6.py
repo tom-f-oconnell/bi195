@@ -35,7 +35,6 @@ def urn_experiment(iteration_fn, initial_white, initial_black, \
             num_black += db
             fraction_black[i] = num_black / (num_black + num_white)
 
-        # TODO log x-axis?
         ax[j].plot(fraction_black, c='black')
 
     plt.suptitle('Fraction of black balls over time, {:,} iterations'.format(draws))
@@ -78,8 +77,6 @@ reach some kind of plateau at just about any value on [0,1].
 
 # B
 # a model for genetic drift in populations of fixed size
-
-# TODO try some w/ N = 20
 N = 10
 
 def iteration_b(white, black):
